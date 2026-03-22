@@ -1,4 +1,3 @@
-using MauiDevFlow.Agent;
 using Shiny;
 using Shiny.Mobile.ContactStore;
 
@@ -19,8 +18,7 @@ public static class MauiProgram
             });
 
         builder.Services.AddContactStore();
-        builder.Services.AddSingleton<IMediaPicker>(MediaPicker.Default);
-        builder.AddMauiDevFlowAgent();
+        builder.Services.AddSingleton(MediaPicker.Default);
 
         return builder.Build();
     }

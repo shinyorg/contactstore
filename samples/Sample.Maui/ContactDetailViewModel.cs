@@ -61,7 +61,7 @@ public partial class ContactDetailViewModel(
     {
         if (ContactId == null || Contact == null) return;
 
-        var confirm = await Shell.Current.DisplayAlert(
+        var confirm = await dialogs.Confirm(
             "Delete Contact",
             $"Delete {Contact.DisplayName}?",
             "Delete", "Cancel");
