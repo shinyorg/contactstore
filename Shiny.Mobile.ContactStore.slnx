@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/Solution/">
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="samples/Sample.Maui/Sample.Maui.csproj" />
+  <Project Path="src/Shiny.Mobile.ContactStore/Shiny.Mobile.ContactStore.csproj" />
+</Solution>
