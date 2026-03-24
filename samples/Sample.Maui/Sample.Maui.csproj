@@ -31,6 +31,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\Shiny.Mobile.ContactStore\Shiny.Mobile.ContactStore.csproj"/>
+        <ProjectReference Include="..\..\src\Shiny.Maui.ContactStore\Shiny.Maui.ContactStore.csproj"/>
     </ItemGroup>
 </Project>

@@ -1,10 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Shiny;
-using Shiny.Mobile.ContactStore;
-using Contact = Shiny.Mobile.ContactStore.Contact;
-using ContactPhone = Shiny.Mobile.ContactStore.ContactPhone;
-using ContactEmail = Shiny.Mobile.ContactStore.ContactEmail;
+using Shiny.Maui.ContactStore;
+using Contact = Shiny.Maui.ContactStore.Contact;
+using ContactPhone = Shiny.Maui.ContactStore.ContactPhone;
+using ContactEmail = Shiny.Maui.ContactStore.ContactEmail;
 
 namespace Sample.Maui;
 

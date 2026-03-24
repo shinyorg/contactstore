@@ -1,13 +1,7 @@
-namespace Shiny.Mobile.ContactStore;
+namespace Shiny.Maui.ContactStore;
 
 public interface IContactStore
 {
-    /// <summary>
-    /// Requests permission to access the device's contacts.
-    /// Returns true if permission was granted, false otherwise.
-    /// </summary>
-    Task<bool> RequestPermission(CancellationToken ct = default);
-
     /// <summary>
     /// Retrieves all contacts from the device.
     /// </summary>

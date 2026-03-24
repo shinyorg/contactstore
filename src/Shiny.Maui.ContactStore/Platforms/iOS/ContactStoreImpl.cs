@@ -1,6 +1,8 @@
 using Contacts;
+using Foundation;
+using Shiny.Maui.ContactStore.Internals;
 
-namespace Shiny.Mobile.ContactStore;
+namespace Shiny.Maui.ContactStore;
 
 public class ContactStoreImpl : IContactStore
 {
@@ -77,13 +79,6 @@ public class ContactStoreImpl : IContactStore
             throw new InvalidOperationException($"Failed to fetch contacts: {error.LocalizedDescription}");
 
         return results;
-    }
-
-    public async Task<bool> RequestPermission(CancellationToken ct = default)
-    {
-        var store = new CNContactStore();
-        var (granted, _) = await store.RequestAccessAsync(CNEntityType.Contacts);
-        return granted;
     }
 
     public Task<IReadOnlyList<Contact>> GetAll(CancellationToken ct = default) => Task.Run(() =>

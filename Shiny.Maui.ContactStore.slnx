@@ -5,5 +5,5 @@
     <File Path="README.md" />
   </Folder>
   <Project Path="samples/Sample.Maui/Sample.Maui.csproj" />
-  <Project Path="src/Shiny.Mobile.ContactStore/Shiny.Mobile.ContactStore.csproj" />
+  <Project Path="src/Shiny.Maui.ContactStore/Shiny.Maui.ContactStore.csproj" />
 </Solution>

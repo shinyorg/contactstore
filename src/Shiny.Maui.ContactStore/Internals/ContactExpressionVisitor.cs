@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Shiny.Mobile.ContactStore;
+namespace Shiny.Maui.ContactStore.Internals;
 
 /// <summary>
 /// Visits a LINQ expression tree and extracts Contact query filters
@@ -177,26 +177,50 @@ public class ContactExpressionVisitor : ExpressionVisitor
             return true;
         }
 
-        // Handle captured variables (closures)
-        if (expr is MemberExpression member && member.Expression is ConstantExpression closureObj)
+        // Handle captured variables (closures) — resolve value by walking the member chain
+        if (TryResolveCapturedValue(expr, out var resolved) && resolved is string sv)
         {
-            try
-            {
-                var val = ((FieldInfo)member.Member).GetValue(closureObj.Value);
-                if (val is string sv)
-                {
-                    value = sv;
-                    return true;
-                }
-            }
-            catch
-            {
-                // fall through
-            }
+            value = sv;
+            return true;
         }
 
         return false;
     }
+
+    /// <summary>
+    /// Resolves a captured variable value by walking the member/constant expression chain.
+    /// AOT-safe: uses direct member access on known constant instances.
+    /// </summary>
+    static bool TryResolveCapturedValue(Expression expr, out object? result)
+    {
+        result = null;
+
+        if (expr is not MemberExpression member)
+            return false;
+
+        // Walk the chain to find the root constant (closure object)
+        if (member.Expression is ConstantExpression closureConst)
+        {
+            result = GetMemberValue(member.Member, closureConst.Value);
+            return true;
+        }
+
+        // Nested member access: e.g. closure.outer.Field
+        if (member.Expression is MemberExpression && TryResolveCapturedValue(member.Expression, out var parent))
+        {
+            result = GetMemberValue(member.Member, parent);
+            return true;
+        }
+
+        return false;
+    }
+
+    static object? GetMemberValue(MemberInfo memberInfo, object? instance) => memberInfo switch
+    {
+        FieldInfo fi => fi.GetValue(instance),
+        PropertyInfo pi => pi.GetValue(instance),
+        _ => throw new NotSupportedException($"Member type '{memberInfo.MemberType}' is not supported for value resolution.")
+    };
 
     static ContactFilterOperation ParseOperation(string methodName) => methodName switch
     {

@@ -1,4 +1,4 @@
-namespace Shiny.Mobile.ContactStore;
+namespace Shiny.Maui.ContactStore;
 
 public class ContactRelationship
 {

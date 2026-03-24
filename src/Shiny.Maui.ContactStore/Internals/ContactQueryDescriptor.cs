@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace Shiny.Mobile.ContactStore;
+namespace Shiny.Maui.ContactStore.Internals;
 
 /// <summary>
 /// Represents a parsed filter extracted from a LINQ expression tree.

@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Shiny;
-using Shiny.Mobile.ContactStore;
-using Contact = Shiny.Mobile.ContactStore.Contact;
+using Shiny.Maui.ContactStore;
+using Contact = Shiny.Maui.ContactStore.Contact;
 
 namespace Sample.Maui;
 
@@ -34,8 +34,8 @@ public partial class ContactListViewModel(
     {
         try
         {
-            var permission = await contactStore.RequestPermission();
-            if (!permission)
+            var permission = await contactStore.RequestPermssionsAsync();
+            if (permission != PermissionStatus.Granted)
             {
                 await dialogs.Alert("FAIL", "Permission Not Granted", "OK");
                 return;
@@ -59,6 +59,8 @@ public partial class ContactListViewModel(
                         c.Phones.Any(p => p.Number.Contains(search)) ||
                         c.Emails.Any(e => e.Address.Contains(search))
                     )
+                    .OrderBy(x => x.FamilyName)
+                    .ThenBy(x => x.GivenName)
                     .ToList();
             }
 

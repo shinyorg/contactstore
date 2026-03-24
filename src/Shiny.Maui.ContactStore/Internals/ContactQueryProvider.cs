@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Linq.Expressions;
 
-namespace Shiny.Mobile.ContactStore;
+namespace Shiny.Maui.ContactStore.Internals;
 
 /// <summary>
 /// IQueryable implementation backed by a custom provider that extracts
@@ -32,15 +32,8 @@ public class ContactQueryable : IQueryable<Contact>, IOrderedQueryable<Contact>
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
 
-public class ContactQueryProvider : IQueryProvider
+public class ContactQueryProvider(Func<ContactQueryDescriptor, IEnumerable<Contact>> executor) : IQueryProvider
 {
-    readonly Func<ContactQueryDescriptor, IEnumerable<Contact>> executor;
-
-    public ContactQueryProvider(Func<ContactQueryDescriptor, IEnumerable<Contact>> executor)
-    {
-        this.executor = executor;
-    }
-
     public IQueryable CreateQuery(Expression expression)
         => new ContactQueryable(this, expression);
 
@@ -60,7 +53,10 @@ public class ContactQueryProvider : IQueryProvider
         var results = executor(descriptor);
 
         if (descriptor.InMemoryPredicate != null)
-            results = results.Where(descriptor.InMemoryPredicate.Compile());
+        {
+            var predicate = descriptor.InMemoryPredicate;
+            results = results.Where(c => ExpressionInterpreter.Evaluate(predicate, c));
+        }
 
         if (descriptor.Skip.HasValue)
             results = results.Skip(descriptor.Skip.Value);

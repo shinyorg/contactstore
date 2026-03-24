@@ -1,6 +1,6 @@
-# Shiny.Mobile.ContactStore
+# Shiny.Maui.ContactStore
 
-A cross-platform .NET library for accessing device contacts on Android and iOS. Provides full CRUD operations, LINQ query support, and dependency injection integration.
+A cross-platform .NET MAUI library for accessing device contacts on Android and iOS. Provides full CRUD operations, LINQ query support, MAUI permission classes, and dependency injection integration.
 
 ## Platforms
 
@@ -14,7 +14,7 @@ A cross-platform .NET library for accessing device contacts on Android and iOS. 
 ### Install
 
 ```
-dotnet add package Shiny.Mobile.ContactStore
+dotnet add package Shiny.Maui.ContactStore
 ```
 
 ### Registration
@@ -24,6 +24,11 @@ builder.Services.AddContactStore();
 ```
 
 ### Platform Permissions
+
+The library provides MAUI permission classes you can use with `Permissions.RequestAsync`:
+
+- `ContactReadPermission` — read access to contacts
+- `ContactWritePermission` — write access to contacts
 
 **Android** — Add to `AndroidManifest.xml`:
 
@@ -65,7 +70,18 @@ public class MyService(IContactStore contactStore)
 ### Request Permission
 
 ```csharp
-bool granted = await contactStore.RequestPermission();
+var status = await Permissions.RequestAsync<ContactReadPermission>();
+if (status != PermissionStatus.Granted)
+{
+    // handle denied
+    return;
+}
+```
+
+For write access:
+
+```csharp
+var status = await Permissions.RequestAsync<ContactWritePermission>();
 ```
 
 ### Get All Contacts

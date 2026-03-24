@@ -1,5 +1,5 @@
 using Shiny;
-using Shiny.Mobile.ContactStore;
+using Shiny.Maui.ContactStore;
 
 namespace Sample.Maui;
 

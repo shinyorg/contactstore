@@ -1,24 +1,17 @@
-#nullable enable
 using Android.Content;
 using Android.Database;
 using Android.Provider;
+using Shiny.Maui.ContactStore.Internals;
 using Application = Android.App.Application;
 using CommonColumns = Android.Provider.ContactsContract.CommonDataKinds;
 using RawContactsColumns = Android.Provider.ContactsContract.RawContacts;
 using DataColumns = Android.Provider.ContactsContract.Data;
 
-namespace Shiny.Mobile.ContactStore;
+namespace Shiny.Maui.ContactStore;
 
 public class ContactStoreImpl : IContactStore
 {
     static ContentResolver Resolver => Application.Context.ContentResolver!;
-
-    public Task<bool> RequestPermission(CancellationToken ct = default)
-    {
-        var context = Application.Context;
-        var result = context.CheckSelfPermission(Android.Manifest.Permission.ReadContacts);
-        return Task.FromResult(result == Android.Content.PM.Permission.Granted);
-    }
 
     public Task<IReadOnlyList<Contact>> GetAll(CancellationToken ct = default)
     {
