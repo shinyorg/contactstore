@@ -8,14 +8,11 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
 
-        <ApplicationTitle>Contact Store Sample</ApplicationTitle>
+        <ApplicationTitle>Contacts Sample</ApplicationTitle>
         <ApplicationId>org.shiny.contactstore</ApplicationId>
         <ApplicationVersion>1</ApplicationVersion>
         <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
         <MauiVersion>10.0.50</MauiVersion>
-
-        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
-        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24</SupportedOSPlatformVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -30,7 +27,7 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)"/>
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.1"/>
-        <PackageReference Include="Shiny.Maui.Shell" Version="3.1.1" />
+        <PackageReference Include="Shiny.Maui.Shell" Version="3.1.1"/>
     </ItemGroup>
 
     <ItemGroup>

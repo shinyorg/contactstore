@@ -21,26 +21,10 @@
                    Placeholder="Search contacts..."
                    SearchCommand="{Binding SearchCommand}" />
 
-        <!-- No permission state -->
-        <VerticalStackLayout Grid.Row="1"
-                             IsVisible="{Binding HasNoPermission}"
-                             VerticalOptions="Center"
-                             HorizontalOptions="Center"
-                             Spacing="10"
-                             Padding="20">
-            <Label Text="⚠️ Contact permission required"
-                   FontSize="18"
-                   HorizontalOptions="Center" />
-            <Label Text="Please grant contact access in Settings."
-                   HorizontalOptions="Center"
-                   TextColor="Gray" />
-        </VerticalStackLayout>
-
         <!-- Contact list -->
         <RefreshView Grid.Row="1"
                      IsRefreshing="{Binding IsRefreshing}"
-                     Command="{Binding LoadContactsCommand}"
-                     IsVisible="{Binding HasPermission}">
+                     Command="{Binding LoadContactsCommand}">
             <CollectionView ItemsSource="{Binding Contacts}"
                             SelectionMode="None">
                 <CollectionView.EmptyView>

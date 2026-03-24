@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Shiny;
@@ -7,6 +6,7 @@ using Contact = Shiny.Mobile.ContactStore.Contact;
 
 namespace Sample.Maui;
 
+[ShellMap<ContactListPage>(registerRoute: false)]
 public partial class ContactListViewModel(
     IContactStore contactStore,
     INavigator navigator,
@@ -14,18 +14,20 @@ public partial class ContactListViewModel(
 ) : ObservableObject, IPageLifecycleAware
 {
     [ObservableProperty]
-    string searchText = string.Empty;
+    string searchText = String.Empty;
 
     [ObservableProperty]
     bool isRefreshing;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasNoPermission))]
-    bool hasPermission = true;
-
-    public bool HasNoPermission => !HasPermission;
-
-    public ObservableCollection<Contact> Contacts { get; } = [];
+    public List<Contact> Contacts
+    {
+        get;
+        set
+        {
+            field = value;
+            OnPropertyChanged();
+        }
+    }
 
     [RelayCommand]
     async Task LoadContacts()
@@ -39,9 +41,8 @@ public partial class ContactListViewModel(
                 return;
             }
             IsRefreshing = true;
-            HasPermission = true;
 
-            IReadOnlyList<Contact> results;
+            IReadOnlyList<Contact> results = [];
 
             if (string.IsNullOrWhiteSpace(SearchText))
             {
@@ -56,18 +57,12 @@ public partial class ContactListViewModel(
                         c.GivenName!.Contains(search) ||
                         c.FamilyName!.Contains(search) ||
                         c.Phones.Any(p => p.Number.Contains(search)) ||
-                        c.Emails.Any(e => e.Address.Contains(search)))
-                    .ToList()
-                    .AsReadOnly();
+                        c.Emails.Any(e => e.Address.Contains(search))
+                    )
+                    .ToList();
             }
 
-            Contacts.Clear();
-            foreach (var contact in results)
-                Contacts.Add(contact);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            HasPermission = false;
+            Contacts = results.ToList();
         }
         catch (Exception ex)
         {
@@ -108,7 +103,7 @@ public partial class ContactListViewModel(
         try
         {
             await contactStore.Delete(contact.Id);
-            Contacts.Remove(contact);
+            await this.LoadContacts();
         }
         catch (Exception ex)
         {

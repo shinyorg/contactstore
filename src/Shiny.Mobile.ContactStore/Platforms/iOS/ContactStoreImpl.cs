@@ -1,36 +1,51 @@
 using Contacts;
-using Foundation;
 
 namespace Shiny.Mobile.ContactStore;
 
 public class ContactStoreImpl : IContactStore
 {
-    static ICNKeyDescriptor Desc(NSString key) => (ICNKeyDescriptor)key;
-
-    static readonly ICNKeyDescriptor[] FetchKeys =
+    static readonly NSString[] FetchKeys =
     [
-        Desc(CNContactKey.Identifier),
-        Desc(CNContactKey.NamePrefix),
-        Desc(CNContactKey.GivenName),
-        Desc(CNContactKey.MiddleName),
-        Desc(CNContactKey.FamilyName),
-        Desc(CNContactKey.NameSuffix),
-        Desc(CNContactKey.Nickname),
-        Desc(CNContactKey.EmailAddresses),
-        Desc(CNContactKey.PhoneNumbers),
-        Desc(CNContactKey.PostalAddresses),
-        Desc(CNContactKey.OrganizationName),
-        Desc(CNContactKey.JobTitle),
-        Desc(CNContactKey.DepartmentName),
-        Desc(CNContactKey.Note),
-        Desc(CNContactKey.Birthday),
-        Desc(CNContactKey.Dates),
-        Desc(CNContactKey.Relations),
-        Desc(CNContactKey.UrlAddresses),
-        Desc(CNContactKey.ImageData),
-        Desc(CNContactKey.ThumbnailImageData),
-        Desc(CNContactKey.Type)
+        CNContactKey.Identifier,
+        CNContactKey.NamePrefix,
+        CNContactKey.GivenName,
+        CNContactKey.MiddleName,
+        CNContactKey.FamilyName,
+        CNContactKey.NameSuffix,
+        CNContactKey.Nickname,
+        CNContactKey.EmailAddresses,
+        CNContactKey.PhoneNumbers,
+        CNContactKey.PostalAddresses,
+        CNContactKey.OrganizationName,
+        CNContactKey.JobTitle,
+        CNContactKey.DepartmentName,
+        CNContactKey.Birthday,
+        CNContactKey.Dates,
+        // CNContactKey.Relations - requires com.apple.developer.contacts.notes entitlement
+        // CNContactKey.Note - requires com.apple.developer.contacts.notes entitlement
+        CNContactKey.UrlAddresses,
+        CNContactKey.ImageData,
+        CNContactKey.ThumbnailImageData,
+        CNContactKey.Type
     ];
+
+    static List<CNContact> FetchContacts(CNContactStore store, NSPredicate? predicate = null)
+    {
+        var request = new CNContactFetchRequest(FetchKeys);
+        if (predicate != null)
+            request.Predicate = predicate;
+
+        var results = new List<CNContact>();
+        store.EnumerateContacts(request, out var error, (contact, ref stop) =>
+        {
+            results.Add(contact);
+        });
+
+        if (error != null)
+            throw new InvalidOperationException($"Failed to fetch contacts: {error.LocalizedDescription}");
+
+        return results;
+    }
 
     public async Task<bool> RequestPermission(CancellationToken ct = default)
     {
@@ -39,44 +54,26 @@ public class ContactStoreImpl : IContactStore
         return granted;
     }
 
-    public Task<IReadOnlyList<Contact>> GetAll(CancellationToken ct = default)
+    public Task<IReadOnlyList<Contact>> GetAll(CancellationToken ct = default) => Task.Run(() =>
     {
-        return Task.Run(() =>
+        var store = new CNContactStore();
+        var contacts = FetchContacts(store);
+
+        var results = new List<Contact>();
+        foreach (var cn in contacts)
         {
-            var store = new CNContactStore();
-            var results = new List<Contact>();
+            ct.ThrowIfCancellationRequested();
+            results.Add(ToContact(cn));
+        }
 
-            var containers = store.GetContainers(null, out var containerError);
-            if (containerError != null)
-                throw new InvalidOperationException($"Failed to fetch containers: {containerError.LocalizedDescription}");
-
-            foreach (var container in containers)
-            {
-                ct.ThrowIfCancellationRequested();
-
-                var predicate = CNContact.GetPredicateForContactsInContainer(container.Identifier);
-                var contacts = store.GetUnifiedContacts(predicate, FetchKeys, out var fetchError);
-                if (fetchError != null)
-                    throw new InvalidOperationException($"Failed to fetch contacts: {fetchError.LocalizedDescription}");
-
-                foreach (var cn in contacts)
-                {
-                    ct.ThrowIfCancellationRequested();
-                    results.Add(ToContact(cn));
-                }
-            }
-
-            return (IReadOnlyList<Contact>)results;
-        }, ct);
-    }
+        return (IReadOnlyList<Contact>)results;
+    }, ct);
 
     public Task<Contact?> GetById(string contactId, CancellationToken ct = default)
     {
         var store = new CNContactStore();
-        var predicate = CNContact.GetPredicateForContacts(new[] { contactId });
-        var contacts = store.GetUnifiedContacts(predicate, FetchKeys, out var error);
-        if (error != null)
-            throw new InvalidOperationException($"Failed to fetch contact: {error.LocalizedDescription}");
+        var predicate = CNContact.GetPredicateForContacts([contactId]);
+        var contacts = FetchContacts(store, predicate);
 
         var cn = contacts.FirstOrDefault();
         var result = cn == null ? null : ToContact(cn);
@@ -98,38 +95,11 @@ public class ContactStoreImpl : IContactStore
                            or nameof(Contact.FamilyName)
                            or nameof(Contact.DisplayName));
 
+        NSPredicate? predicate = null;
         if (nameFilter != null)
-        {
-            var predicate = CNContact.GetPredicateForContacts(nameFilter.Value);
-            var contacts = store.GetUnifiedContacts(predicate, FetchKeys, out var error);
-            if (error != null)
-                throw new InvalidOperationException($"Query failed: {error.LocalizedDescription}");
+            predicate = CNContact.GetPredicateForContacts(nameFilter.Value);
 
-            return contacts.Select(ToContact);
-        }
-
-        return LoadAllContacts(store);
-    }
-
-    static List<Contact> LoadAllContacts(CNContactStore store)
-    {
-        var all = new List<Contact>();
-        var containers = store.GetContainers(null, out var containerError);
-        if (containerError != null)
-            throw new InvalidOperationException($"Failed to fetch containers: {containerError.LocalizedDescription}");
-
-        foreach (var container in containers)
-        {
-            var pred = CNContact.GetPredicateForContactsInContainer(container.Identifier);
-            var contacts = store.GetUnifiedContacts(pred, FetchKeys, out var fetchError);
-            if (fetchError != null)
-                throw new InvalidOperationException($"Failed to fetch contacts: {fetchError.LocalizedDescription}");
-
-            foreach (var cn in contacts)
-                all.Add(ToContact(cn));
-        }
-
-        return all;
+        return FetchContacts(store, predicate).Select(ToContact);
     }
 
     public Task<string> Create(Contact contact, CancellationToken ct = default)
@@ -153,10 +123,8 @@ public class ContactStoreImpl : IContactStore
             throw new ArgumentException("Contact Id is required for update.", nameof(contact));
 
         var store = new CNContactStore();
-        var predicate = CNContact.GetPredicateForContacts(new[] { contact.Id });
-        var contacts = store.GetUnifiedContacts(predicate, FetchKeys, out var fetchError);
-        if (fetchError != null)
-            throw new InvalidOperationException($"Failed to fetch contact for update: {fetchError.LocalizedDescription}");
+        var predicate = CNContact.GetPredicateForContacts([contact.Id]);
+        var contacts = FetchContacts(store, predicate);
 
         var existing = contacts.FirstOrDefault()
             ?? throw new InvalidOperationException($"Contact with Id '{contact.Id}' not found.");
@@ -179,9 +147,7 @@ public class ContactStoreImpl : IContactStore
     {
         var store = new CNContactStore();
         var predicate = CNContact.GetPredicateForContacts([contactId]);
-        var contacts = store.GetUnifiedContacts(predicate, FetchKeys, out var fetchError);
-        if (fetchError != null)
-            throw new InvalidOperationException($"Failed to fetch contact for deletion: {fetchError.LocalizedDescription}");
+        var contacts = FetchContacts(store, predicate);
 
         var existing = contacts.FirstOrDefault()
             ?? throw new InvalidOperationException($"Contact with Id '{contactId}' not found.");
@@ -194,7 +160,7 @@ public class ContactStoreImpl : IContactStore
 
         if (!store.ExecuteSaveRequest(saveRequest, out var error))
             throw new InvalidOperationException($"Failed to delete contact: {error?.LocalizedDescription}");
-        
+
         return Task.CompletedTask;
     }
 
@@ -211,7 +177,7 @@ public class ContactStoreImpl : IContactStore
             FamilyName = cn.FamilyName,
             NameSuffix = cn.NameSuffix,
             Nickname = cn.Nickname,
-            Note = cn.Note,
+            //Note = cn.Note,
             Organization = new ContactOrganization
             {
                 Company = cn.OrganizationName,
@@ -274,14 +240,15 @@ public class ContactStoreImpl : IContactStore
             }
         }
 
-        if (cn.ContactRelations != null)
-        {
-            foreach (var rv in cn.ContactRelations)
-            {
-                var (type, label) = ToRelationshipType(rv.Label);
-                contact.Relationships.Add(new ContactRelationship(rv.Value.Name, type, label));
-            }
-        }
+        // ContactRelations requires com.apple.developer.contacts.notes entitlement
+        // if (cn.ContactRelations != null)
+        // {
+        //     foreach (var rv in cn.ContactRelations)
+        //     {
+        //         var (type, label) = ToRelationshipType(rv.Label);
+        //         contact.Relationships.Add(new ContactRelationship(rv.Value.Name, type, label));
+        //     }
+        // }
 
         if (cn.UrlAddresses != null)
         {
@@ -304,7 +271,7 @@ public class ContactStoreImpl : IContactStore
         cn.FamilyName = contact.FamilyName ?? string.Empty;
         cn.NameSuffix = contact.NameSuffix ?? string.Empty;
         cn.Nickname = contact.Nickname ?? string.Empty;
-        cn.Note = contact.Note ?? string.Empty;
+        //cn.Note = contact.Note ?? string.Empty;
 
         cn.OrganizationName = contact.Organization?.Company ?? string.Empty;
         cn.JobTitle = contact.Organization?.Title ?? string.Empty;
