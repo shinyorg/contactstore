@@ -4,7 +4,7 @@ namespace Shiny.Mobile.ContactStore;
 
 public class ContactStoreImpl : IContactStore
 {
-    static readonly NSString[] FetchKeys =
+    static readonly NSString[] BaseFetchKeys =
     [
         CNContactKey.Identifier,
         CNContactKey.NamePrefix,
@@ -21,17 +21,49 @@ public class ContactStoreImpl : IContactStore
         CNContactKey.DepartmentName,
         CNContactKey.Birthday,
         CNContactKey.Dates,
-        // CNContactKey.Relations - requires com.apple.developer.contacts.notes entitlement
-        // CNContactKey.Note - requires com.apple.developer.contacts.notes entitlement
         CNContactKey.UrlAddresses,
         CNContactKey.ImageData,
         CNContactKey.ThumbnailImageData,
         CNContactKey.Type
     ];
 
+    static bool? hasNotesEntitlement;
+
+    static bool HasNotesEntitlement
+    {
+        get
+        {
+            if (hasNotesEntitlement == null)
+            {
+                try
+                {
+                    var store = new CNContactStore();
+                    var keys = new NSString[] { CNContactKey.Identifier, CNContactKey.Note };
+                    var request = new CNContactFetchRequest(keys);
+                    request.Predicate = CNContact.GetPredicateForContacts(["__entitlement_check__"]);
+                    store.EnumerateContacts(request, out var error, (_, ref stop) => { stop = true; });
+                    hasNotesEntitlement = error == null;
+                }
+                catch
+                {
+                    hasNotesEntitlement = false;
+                }
+            }
+            return hasNotesEntitlement.Value;
+        }
+    }
+
+    static NSString[] GetFetchKeys()
+    {
+        if (!HasNotesEntitlement)
+            return BaseFetchKeys;
+
+        return [..BaseFetchKeys, CNContactKey.Relations, CNContactKey.Note];
+    }
+
     static List<CNContact> FetchContacts(CNContactStore store, NSPredicate? predicate = null)
     {
-        var request = new CNContactFetchRequest(FetchKeys);
+        var request = new CNContactFetchRequest(GetFetchKeys());
         if (predicate != null)
             request.Predicate = predicate;
 
@@ -177,7 +209,7 @@ public class ContactStoreImpl : IContactStore
             FamilyName = cn.FamilyName,
             NameSuffix = cn.NameSuffix,
             Nickname = cn.Nickname,
-            //Note = cn.Note,
+            Note = HasNotesEntitlement ? cn.Note : null,
             Organization = new ContactOrganization
             {
                 Company = cn.OrganizationName,
@@ -240,15 +272,14 @@ public class ContactStoreImpl : IContactStore
             }
         }
 
-        // ContactRelations requires com.apple.developer.contacts.notes entitlement
-        // if (cn.ContactRelations != null)
-        // {
-        //     foreach (var rv in cn.ContactRelations)
-        //     {
-        //         var (type, label) = ToRelationshipType(rv.Label);
-        //         contact.Relationships.Add(new ContactRelationship(rv.Value.Name, type, label));
-        //     }
-        // }
+        if (HasNotesEntitlement && cn.ContactRelations != null)
+        {
+            foreach (var rv in cn.ContactRelations)
+            {
+                var (type, label) = ToRelationshipType(rv.Label);
+                contact.Relationships.Add(new ContactRelationship(rv.Value.Name, type, label));
+            }
+        }
 
         if (cn.UrlAddresses != null)
         {
@@ -271,7 +302,8 @@ public class ContactStoreImpl : IContactStore
         cn.FamilyName = contact.FamilyName ?? string.Empty;
         cn.NameSuffix = contact.NameSuffix ?? string.Empty;
         cn.Nickname = contact.Nickname ?? string.Empty;
-        //cn.Note = contact.Note ?? string.Empty;
+        if (HasNotesEntitlement)
+            cn.Note = contact.Note ?? string.Empty;
 
         cn.OrganizationName = contact.Organization?.Company ?? string.Empty;
         cn.JobTitle = contact.Organization?.Title ?? string.Empty;
@@ -316,11 +348,14 @@ public class ContactStoreImpl : IContactStore
                 ToNSDateComponents(d.Date)))
             .ToArray();
 
-        cn.ContactRelations = contact.Relationships
-            .Select(r => new CNLabeledValue<CNContactRelation>(
-                FromRelationshipType(r.Type, r.Label),
-                new CNContactRelation(r.Name)))
-            .ToArray();
+        if (HasNotesEntitlement)
+        {
+            cn.ContactRelations = contact.Relationships
+                .Select(r => new CNLabeledValue<CNContactRelation>(
+                    FromRelationshipType(r.Type, r.Label),
+                    new CNContactRelation(r.Name)))
+                .ToArray();
+        }
 
         cn.UrlAddresses = contact.Websites
             .Select(w => new CNLabeledValue<NSString>(
