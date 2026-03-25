@@ -24,7 +24,7 @@ public static class ContactStoreExtensions
         public Task<PermissionStatus> CheckPermissionStatusAsync()
             => Permissions.CheckStatusAsync<ContactPermission>();
 
-        public Task<PermissionStatus> RequestPermssionsAsync()
+        public Task<PermissionStatus> RequestPermissionsAsync()
             => Permissions.RequestAsync<ContactPermission>();
 
         public async Task<IReadOnlyList<char>> GetFamilyNameFirstLetters(CancellationToken ct = default)

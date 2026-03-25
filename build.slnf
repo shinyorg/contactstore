@@ -1,0 +1,8 @@
+﻿{
+  "solution": {
+    "path": "Shiny.Maui.ContactStore.slnx",
+    "projects": [
+      "src\\Shiny.Maui.ContactStore\\Shiny.Maui.ContactStore.csproj"
+    ]
+  }
+}
