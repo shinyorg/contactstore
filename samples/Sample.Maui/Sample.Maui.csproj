@@ -12,7 +12,6 @@
         <ApplicationId>org.shiny.contactstore</ApplicationId>
         <ApplicationVersion>1</ApplicationVersion>
         <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-        <MauiVersion>10.0.50</MauiVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -25,9 +24,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)"/>
-        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.1"/>
-        <PackageReference Include="Shiny.Maui.Shell" Version="3.1.1"/>
+        <PackageReference Include="Microsoft.Maui.Controls"/>
+        <PackageReference Include="CommunityToolkit.Mvvm"/>
+        <PackageReference Include="Shiny.Maui.Shell"/>
     </ItemGroup>
 
     <ItemGroup>

@@ -22,7 +22,7 @@ public partial class ContactListViewModel(
     public List<Contact> Contacts
     {
         get;
-        set
+        private set
         {
             field = value;
             OnPropertyChanged();
@@ -42,16 +42,15 @@ public partial class ContactListViewModel(
             }
             IsRefreshing = true;
 
-            IReadOnlyList<Contact> results = [];
-
-            if (string.IsNullOrWhiteSpace(SearchText))
+            var search = SearchText.Trim();
+            
+            if (string.IsNullOrWhiteSpace(search))
             {
-                results = await contactStore.GetAll();
+                Contacts = (await contactStore.GetAll()).ToList();
             }
             else
             {
-                var search = SearchText.Trim();
-                results = contactStore
+                Contacts = contactStore
                     .Query()
                     .Where(c =>
                         c.GivenName!.Contains(search) ||
@@ -63,8 +62,6 @@ public partial class ContactListViewModel(
                     .ThenBy(x => x.GivenName)
                     .ToList();
             }
-
-            Contacts = results.ToList();
         }
         catch (Exception ex)
         {

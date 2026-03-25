@@ -1,5 +1,6 @@
 namespace Shiny.Maui.ContactStore;
 
+#if ANDROID || IOS
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddContactStore(this IServiceCollection services)
@@ -8,6 +9,7 @@ public static class ServiceCollectionExtensions
         return services;
     }
 }
+#endif
 
 public static class ContactStoreExtensions
 {

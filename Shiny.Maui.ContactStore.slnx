@@ -1,8 +1,13 @@
 <Solution>
   <Folder Name="/Solution/">
+    <File Path=".github\workflows\build.yml" />
+    <File Path=".github\workflows\sync-skills.yml" />
+    <File Path="Directory.Packages.props" />
     <File Path="global.json" />
     <File Path="LICENSE" />
     <File Path="README.md" />
+    <File Path="skills\shiny-contactstore\SKILL.md" />
+    <File Path="version.json" />
   </Folder>
   <Project Path="samples/Sample.Maui/Sample.Maui.csproj" />
   <Project Path="src/Shiny.Maui.ContactStore/Shiny.Maui.ContactStore.csproj" />
