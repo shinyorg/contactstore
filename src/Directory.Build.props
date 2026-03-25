@@ -10,7 +10,7 @@
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageProjectUrl>https://github.com/shinyorg/contactstore</PackageProjectUrl>
         <PackageIcon>icon.png</PackageIcon>
-        <PackageReadmeFile>readme.md</PackageReadmeFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageReleaseNotes>https://github.com/shinyorg/contactstore</PackageReleaseNotes>
         <PackageTags>maui contacts shiny android ios</PackageTags>
         <RepositoryUrl>https://github.com/shinyorg/contactstore</RepositoryUrl>

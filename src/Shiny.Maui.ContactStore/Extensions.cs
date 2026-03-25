@@ -1,8 +1,14 @@
 namespace Shiny.Maui.ContactStore;
 
 #if ANDROID || IOS
-public static class ServiceCollectionExtensions
+public static class RegistrationExtensions
 {
+    public static MauiAppBuilder AddContactStore(this MauiAppBuilder builder)
+    {
+        builder.Services.AddContactStore();
+        return builder;
+    }
+    
     public static IServiceCollection AddContactStore(this IServiceCollection services)
     {
         services.AddSingleton<IContactStore, ContactStoreImpl>();
