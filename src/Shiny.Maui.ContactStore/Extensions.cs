@@ -1,7 +1,9 @@
-namespace Shiny.Maui.ContactStore;
+using Shiny.Maui.ContactStore;
+
+namespace Shiny;
 
 #if ANDROID || IOS
-public static class RegistrationExtensions
+public static class ContactStoreRegistrationExtensions
 {
     public static MauiAppBuilder AddContactStore(this MauiAppBuilder builder)
     {
